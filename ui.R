@@ -21,7 +21,22 @@ shinyUI(pageWithSidebar(
                              "Transportation" = "Transporte",
                              "Redeemable Life Insurance" = "VGBL")),
     selectInput("Year", "Choose the year:",
-                choices = as.character(c(2005 : 2015)))
+                choices = as.character(c(2005 : 2015))),
+    h4("Instructions"),
+    tags$ul(
+        tags$li("Direct premiums are the total premiums received by an 
+                 insurance company before taking into account reinsurance ceded. 
+                 The growth of direct premiums represent the growth of a company’s 
+                 insurance business."), 
+        tags$li("Here we have the direct premiums of brazilian companies by 
+                 brazilian states from 2005 up to 2015. The different lines of business were 
+                 aggregated into what we called \"Segments\". The premiums are 
+                 billions of brazilian Reais (R$), roughly 1 US$ = 3.37 R$ 
+                 in 12-09-2016."), 
+        tags$li("Just select a segment and a year and the application will
+                generate the percentage distribution of premiums per brazilian 
+                states and a table with the values themselves.")
+    )
   ),
   mainPanel(
     h3("Percentage distribuition of Direct Premium in Brazil"),

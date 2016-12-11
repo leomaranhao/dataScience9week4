@@ -36,7 +36,9 @@ shinyUI(pageWithSidebar(
         tags$li("Just select a segment and a year and the application will
                 generate the percentage distribution of premiums per brazilian 
                 states and a table with the values themselves.")
-    )
+    ),
+    h4("Links"),
+    a(href="https://github.com/leomaranhao/dataScience9week4", "server.R and ui.R ")
   ),
   mainPanel(
     h3("Percentage distribuition of Direct Premium in Brazil"),

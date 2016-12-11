@@ -1,0 +1,123 @@
+Insurance Direct Premiums in Brazil
+========================================================
+author: Léo Maranhão de Mello
+date: `r date()`
+autosize: true
+
+Direct Premiums
+========================================================
+
+- Direct premiums are the total premiums received by an insurance company before taking into account reinsurance ceded. 
+
+- The growth of direct premiums represent the growth of a company’s insurance business.
+
+- It's an important information if you, or your company, considers making investments in the insurance industry in a country.
+
+Shiny Application
+========================================================
+
+- The data used on the project was obtained from the brazilian insurance regulator web site and has the following link:
+
+http://www2.susep.gov.br/redarq.asp?arq=BaseCompleta%2ezip
+
+- Tha database provided above have the direct premiums of brazilian companies by brazilian states. We selected the data from 2005 up to 2015. 
+
+- The different lines of business were aggregated into what we called "Segments". The premiums are billions of brazilian Reais, roughly US$ 1 = R$3.37 in 12-09-2016.
+
+- To use the application is very simple. Just select a segment and a year and the application will generate the percentage distribution of premiums per brazilian states and a table with the values themselves, as we can see in the following 2 slides for the segment "Auto" and the year of 2015.
+
+Percentage Map Example 
+========================================================
+
+- the image below and on next slide were created with embeded R code, as can be seen from the [source code](https://github.com/leomaranhao/dataScience9week4/blob/master/ds9week4Pitch.Rpres) in the github repository.
+
+
+```{r mapa, echo=FALSE}
+library(shiny)
+library(UsingR)
+library(XML)
+library(RCurl)
+library(maptools)
+library(RColorBrewer)
+library(leaflet)
+library(htmlwidgets)
+library(webshot)
+
+
+load("~/R/ds9week4/.RData")
+
+mapaUF <- mapaUF[order(as.numeric(mapaUF$sigla)),]
+
+pal <- colorRamp(c("red", "white", "blue", "green", "yellow"))
+
+ufs <- data.frame(uf = mapaUF$sigla)
+
+dados <- segurosConsol[segurosConsol$ano == 2015 & 
+                           segurosConsol$grupoRamo == "Auto",]
+
+premioTotal <- sum(dados$premio_dir, na.rm = TRUE)
+
+coresRegiao <-  data.frame(premio_dir = round(dados$premio_dir/premioTotal*100,2), uf = dados$UF)
+
+coresDasCategorias = data.frame(cores=rgb(pal(coresRegiao$premio_dir/100), maxColorValue = 256))
+
+coresRegiao <- cbind(coresRegiao, coresDasCategorias)
+
+coresRegiao <- coresRegiao[order(as.numeric(coresRegiao$uf)),]
+
+if (nrow(coresRegiao)>0){
+    coresRegiao$premio_dir <- paste(coresRegiao$premio_dir, "%", sep="")   
+}
+
+coresRegiao <- merge(ufs, coresRegiao, all.x=TRUE)
+
+m <- leaflet(mapaUF) %>% 
+    addTiles() %>%
+    addPolygons(
+        stroke = FALSE, fillOpacity = 0.3, smoothFactor = 1,
+        color = as.character(coresRegiao$cores),
+        popup = paste(mapaUF$nome, ": ", coresRegiao$premio_dir, sep=""))     
+
+saveWidget(m, "temp.html", selfcontained = FALSE)
+webshot("temp.html", file = "mapa.png", cliprect = "viewport")
+```
+
+![Map showed by the application](mapa.png)
+
+Premiums Table Example 
+========================================================
+
+```{r tabela, echo=FALSE}
+library(shiny)
+library(UsingR)
+library(XML)
+library(RCurl)
+library(maptools)
+library(RColorBrewer)
+library(leaflet)
+library(htmlwidgets)
+library(webshot)
+library(googleVis)
+
+dados <- segurosConsol[segurosConsol$ano == 2015 & 
+                           segurosConsol$grupoRamo == "Auto",]
+
+dados <- dados[order(as.numeric(dados$UF)),]
+
+mapaUF <- mapaUF[order(as.numeric(mapaUF$sigla)),]
+
+ufs <- data.frame(UF = mapaUF$sigla, nome = mapaUF$nome)
+
+dados <- merge(ufs, dados)
+
+saida <- dados[,c(2,1,5)] 
+
+names(saida) <- c("State", "Code", "Premium (Billions of R$)")
+
+p <- gvisTable(saida, options=list(width=350, title="Insurance Direct Premium in Brazil"))
+
+cat(p$html$chart, file="temp2.html")
+webshot("temp2.html", file = "tabela.png", cliprect = "viewport", delay = 30)
+```
+
+![table showed by the application](tabela.png)
